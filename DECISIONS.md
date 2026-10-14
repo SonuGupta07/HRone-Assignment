@@ -1,21 +1,21 @@
 # Implementation Decisions
 
-## 1. Indexes
+## 1. Indexing Strategy
 
-I used a unique index on `employees.emp_code` to prevent duplicate employees and a unique compound index on `attendance_logs.emp_code` and `date` to prevent duplicate daily attendance records. I also added indexes for attendance date and status filters, employee department and joining-date filters, and employee-based attendance lookups. I did not add a separate status-only index because the compound status/date index supports the relevant filtered queries. I checked query plans using the explain endpoint and a dataset containing 100,000 attendance records.
+I chose indexes based on the queries the API performs most often, rather than indexing every field. A unique index on `employees.emp_code` prevents duplicate employee codes, while a unique compound index on `attendance_logs.emp_code` and `date` enforces one attendance record per employee per day. I also added indexes to support date and status filtering, employee lookups, and department-based queries. I avoided a separate status-only index because the compound status/date index already supports the relevant query patterns. I used the explain endpoint on a dataset of 100,000 attendance records to check whether the queries used indexes instead of collection scans.
 
-## 2. Punch-in race condition
+## 2. Handling Concurrent Punch-ins
 
-Checking for an existing attendance record before insertion is not enough because two simultaneous requests can both pass the check. The unique compound index on employee code and date is the final safeguard. If one request inserts first, MongoDB rejects the duplicate from the other request, and the API returns HTTP 409 Conflict.
+Checking for an existing attendance record before inserting it is useful for an early response, but it cannot prevent two simultaneous requests from passing the check. I therefore rely on the unique compound index as the final safeguard. If concurrent requests attempt to create the same employee-date record, MongoDB accepts only one insert. The duplicate-key error is handled by the API and returned as HTTP 409 Conflict. This keeps the integrity rule enforced by the database, not just by application code.
 
-## 3. Leaderboard ties
+## 3. Leaderboard Ranking and Ties
 
-I used competition ranking so employees with equal late-minute totals receive the same rank. The next rank skips the tied positions, for example, `1, 2, 2, 4`. The limit is applied after ranking, so the response can contain more rows than the requested limit when employees are tied at the boundary.
+I used competition ranking because employees with the same total late minutes should receive the same rank. For example, the ranks are `1, 2, 2, 4` when two employees tie for second place. I apply the requested limit after calculating ranks, so all employees tied at the boundary can be included even if the response contains more rows than the limit. This preserves the ranking rule instead of arbitrarily excluding an employee with the same score.
 
-## 4. Departments with no attendance
+## 4. Departments With No Attendance Records
 
-The department summary starts with employees eligible for the reporting period and looks up their attendance records. This approach preserves employees with zero attendance records while excluding employees who joined after the reporting period. It also allows the summary to include departments with eligible employees but no attendance activity.
+I start the department summary from employees eligible for the reporting period and then look up their attendance records. Starting from attendance alone would omit employees and departments with no logs, which could make headcounts and summaries misleading. This approach includes eligible employees even when they have no attendance records and excludes employees who joined after the reporting period. Departments with no eligible employees are not included.
 
-## 5. Scaling
+## 5. Scaling the System
 
-If the dataset became 100 times larger, I would first profile the aggregation pipelines and inspect query execution plans to identify bottlenecks. I would then consider pre-aggregating daily or monthly attendance statistics to reduce repeated calculations over historical records. Detailed attendance records would remain the source of truth so that summaries could be checked and rebuilt when necessary.
+If the dataset grew to 100 times its current size, I would first use query execution statistics to identify which endpoints and aggregation stages had become bottlenecks. I would review index effectiveness before adding more indexes, since extra indexes also increase storage and write costs. If repeated historical analytics became expensive, I would consider maintaining daily or monthly summary records. The detailed attendance records would remain the source of truth, allowing summaries to be verified or rebuilt when needed. I would make this change based on measured performance rather than introducing extra complexity before it is necessary.
