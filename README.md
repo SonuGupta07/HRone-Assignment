@@ -1,119 +1,152 @@
 # Employee Attendance & Analytics API
 
-A REST API built using **Python, FastAPI, and MongoDB** to manage employee attendance, handle punch-in and punch-out operations, process attendance corrections, and generate attendance analytics.
+A REST API built with **Python, FastAPI, and MongoDB** for managing employee attendance, processing attendance corrections, and generating attendance analytics.
+
+This project was developed as part of the HROne Software Engineer Trainee technical assignment.
 
 ## Tech Stack
 
-- Python 3.11+
-- FastAPI
-- MongoDB 6.0+
-- PyMongo
-- Pydantic
+- **Language:** Python 3.11+
+- **API Framework:** FastAPI
+- **Database:** MongoDB 6.0+
+- **Database Driver:** PyMongo
+- **Data Validation:** Pydantic
 
 ## Features
 
-- Employee creation and employee listing with pagination and filters
-- Attendance punch-in and punch-out
-- Attendance listing with filtering and pagination
-- Manual attendance regularization with an audit trail
-- Employee monthly attendance analytics
-- Department-wise attendance summaries
-- Late-arrival leaderboard with competition ranking
-- Department attendance trends with moving averages
-- MongoDB indexes for query performance and data integrity
-- Query execution plans through the explain endpoint
+- Create and list employees with filtering and pagination
+- Record employee punch-in and punch-out
+- Retrieve attendance records with filters and pagination
+- Correct attendance records through manual regularization with an audit trail
+- Generate employee-level monthly attendance analytics
+- Calculate department-wise attendance summaries
+- Rank employees by late-arrival minutes, including tied ranks
+- Generate department attendance trends with moving averages
+- Create MongoDB indexes for data integrity and query performance
+- Inspect MongoDB query execution plans through the explain endpoint
 
 ## Prerequisites
 
-Make sure Python 3.11 or newer and MongoDB 6.0 or newer are installed and running.
+Before running the application, ensure you have:
 
-## Setup and Installation
+- Python 3.11 or newer
+- MongoDB 6.0 or newer
+- Git
 
-Clone the repository and move into the project directory:
+MongoDB can run locally or through a MongoDB Atlas connection string.
+
+## Getting Started
+
+### 1. Clone the repository
 
 ```bash
-git clone <your-public-repository-url>
-cd <repository-folder>
+git clone https://github.com/SonuGupta07/HRone-Assignment.git
+cd HRone-Assignment
 ```
 
-Create and activate a virtual environment:
+### 2. Create and activate a virtual environment
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-Install the dependencies:
+### 3. Install dependencies
 
 ```bash
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Configure the MongoDB connection using environment variables:
+### 4. Configure the database
+
+Make sure MongoDB is running, then configure the connection using environment variables:
 
 ```bash
 export MONGO_URI="mongodb://localhost:27017"
 export MONGO_DB="attendance_db"
 ```
 
-Make sure MongoDB is running before starting the application.
+For MongoDB Atlas, replace `MONGO_URI` with your connection string. Keep credentials private and never commit database passwords or other secrets.
 
-## Run the Application
+### 5. Start the application
 
-Start the FastAPI server:
+Run the API using the required application entry point:
 
 ```bash
 uvicorn app.main:app --port 8000
 ```
 
-Alternatively, if needed to use the Python interpreter from the active virtual environment:
+Alternatively:
 
 ```bash
 python -m uvicorn app.main:app --port 8000
 ```
 
-The API will be available at:
+The server starts on port `8000`.
 
-- API base URL: `http://localhost:8000`
-- Interactive Swagger documentation: `http://localhost:8000/docs`
-- OpenAPI schema: `http://localhost:8000/openapi.json`
+## API Documentation
 
-## Sample Data
+Once the application is running, access:
 
-To load the supplied sample dataset into MongoDB, run:
+| Resource | URL |
+|---|---|
+| API base URL | `http://localhost:8000` |
+| Health check | `http://localhost:8000/health` |
+| Interactive Swagger UI | `http://localhost:8000/docs` |
+| Generated OpenAPI schema | `http://localhost:8000/openapi.json` |
 
-```bash
-python sample_seed.py
-```
+Swagger UI can be used to send requests, inspect request parameters, and review API responses.
 
-Use the database configured through `MONGO_DB` and make sure the sample data is loaded before running tests that depend on it.
+## Main API Capabilities
+
+The API covers the following areas:
+
+- **Employees:** Employee creation and filtered, paginated listing
+- **Attendance:** Punch-in, punch-out, attendance listing, and manual corrections
+- **Employee analytics:** Monthly attendance and working-day calculations
+- **Department analytics:** Department summaries and date-wise attendance trends
+- **Late-arrival analytics:** Leaderboard with competition ranking
+- **Query diagnostics:** MongoDB execution plans and index usage
+
+Refer to the assignment's `openapi.yaml` for the complete endpoint contract and business rules.
+
+## Database and Performance
+
+The application uses MongoDB indexes to enforce uniqueness and support common query patterns. Analytics endpoints use database aggregation where appropriate, and the explain endpoint helps inspect query execution plans.
+
+The implementation was tested against a performance dataset containing 100,000 attendance records.
 
 ## Testing
 
-Use Swagger UI at `/docs` to test the API endpoints and inspect request validation and response codes.
+Start the application and use Swagger UI at `/docs` to exercise the endpoints.
 
-The API also provides an explain endpoint for inspecting MongoDB query execution plans and index usage.
+For meaningful analytics results, use a MongoDB database containing the expected employee and attendance records. The original candidate kit provides sample-data and seed files, but these supporting files are not included in this submission repository.
 
 ## Project Structure
 
 ```text
-.
+HRone-Assignment/
 ├── app/
-│   ├── __init__.py
 │   └── main.py
-├── sample_data/
-├── sample_seed.py
+├── .gitignore
 ├── requirements.txt
-├── openapi.yaml
-├── DATA_MODEL.md
+├── README.md
 ├── REVIEW.md
-├── DECISIONS.md
-└── README.md
+└── DECISIONS.md
 ```
 
 ## Configuration and Security
 
-- Configure the MongoDB URI and database name through environment variables.
-- Do not commit `.env` files, passwords, or other secrets.
-- Do not include the local `.venv` directory or Python cache files in the submitted repository.
+- Configure the MongoDB connection through environment variables.
+- Do not commit `.env` files, passwords, API keys, or other secrets.
+- Do not commit the local `.venv/` directory or Python cache files.
+- Keep database credentials private when using MongoDB Atlas.
 
+## Author
+
+**Sonu Gupta**
+
+GitHub: [SonuGupta07](https://github.com/SonuGupta07)
+
+Repository: [HRone-Assignment](https://github.com/SonuGupta07/HRone-Assignment)
